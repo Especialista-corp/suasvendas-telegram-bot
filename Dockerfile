@@ -31,40 +31,24 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
-# Instala Google Chrome (método atualizado sem apt-key)
+# Instala Google Chrome Stable
 RUN wget -q -O /tmp/google-chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
     apt-get update && \
     apt-get install -y /tmp/google-chrome.deb && \
     rm /tmp/google-chrome.deb && \
     rm -rf /var/lib/apt/lists/*
 
-# Instala ChromeDriver
-RUN CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d '.' -f 1) && \
-    if [ "$CHROME_VERSION" -ge "115" ]; then \
-        wget -q "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_STABLE" -O /tmp/version && \
-        CHROMEDRIVER_VERSION=$(cat /tmp/version) && \
-        wget -q "https://storage.googleapis.com/chrome-for-testing-public/${CHROMEDRIVER_VERSION}/linux64/chromedriver-linux64.zip" -O /tmp/chromedriver.zip && \
-        unzip -q /tmp/chromedriver.zip -d /tmp/ && \
-        mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/ && \
-        chmod +x /usr/local/bin/chromedriver && \
-        rm -rf /tmp/chromedriver* /tmp/version; \
-    else \
-        wget -q "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION}" -O /tmp/version && \
-        CHROMEDRIVER_VERSION=$(cat /tmp/version) && \
-        wget -q "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip" -O /tmp/chromedriver.zip && \
-        unzip -q /tmp/chromedriver.zip -d /tmp/ && \
-        mv /tmp/chromedriver /usr/local/bin/ && \
-        chmod +x /usr/local/bin/chromedriver && \
-        rm /tmp/chromedriver.zip /tmp/version; \
-    fi
+# NÃO instala ChromeDriver manualmente
+# O Selenium vai baixar a versão correta automaticamente
 
 # Cria diretório de trabalho
 WORKDIR /app
 
-# Copia arquivos
+# Copia e instala dependências Python
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copia código da aplicação
 COPY . .
 
 # Comando para rodar o bot
